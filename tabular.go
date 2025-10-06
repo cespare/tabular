@@ -3,13 +3,12 @@
 // The package is an alternative to text/tabwriter for some use cases.
 // In comparison with text/tabwriter, this package:
 //
-//   * Is oriented around rows and cells, not tab-delimited text
-//   * Inserts padding between cells, not after each cell
-//   * Does not count padding toward min-width
-//   * Does not insert any padding after the last cell of each row
-//   * Allows for per-cell right-alignment
-//   * Omits several lesser-used features
-//
+//   - Is oriented around rows and cells, not tab-delimited text
+//   - Inserts padding between cells, not after each cell
+//   - Does not count padding toward min-width
+//   - Does not insert any padding after the last cell of each row
+//   - Allows for per-cell right-alignment
+//   - Omits several lesser-used features
 package tabular
 
 import (
@@ -19,12 +18,12 @@ import (
 	"unicode/utf8"
 )
 
-// Options configure a Writer.
+// Options configure a [Buffer].
 type Options struct {
 	MinWidth   int  // Minimum cell width (not including padding).
 	Padding    int  // Padding between each cell.
 	PadChar    byte // The character to use for padding.
-	AlignRight bool // Align cells to the rigth by default.
+	AlignRight bool // Align cells to the right by default.
 }
 
 // A Buffer stores rows of text and prints them as a table.
@@ -41,28 +40,28 @@ type cell struct {
 	right bool // whether to right-align
 }
 
-// New constructs a Buffer with options.
+// New constructs a [Buffer] with options.
 func New(opts Options) *Buffer {
 	return &Buffer{opts: opts}
 }
 
-// Right marks a value passed to Buffer.AddRow for right alignment.
-func Right(v interface{}) interface{} {
+// Right marks a value passed to [Buffer.AddRow] for right alignment.
+func Right(v any) any {
 	return right{v}
 }
 
-type right struct{ v interface{} }
+type right struct{ v any }
 
 func (r right) String() string {
 	return fmt.Sprint(r.v)
 }
 
-// Left marks a value passed to Buffer.AddRow for left alignment.
-func Left(v interface{}) interface{} {
+// Left marks a value passed to [Buffer.AddRow] for left alignment.
+func Left(v any) any {
 	return left{v}
 }
 
-type left struct{ v interface{} }
+type left struct{ v any }
 
 func (l left) String() string {
 	return fmt.Sprint(l.v)
@@ -71,7 +70,7 @@ func (l left) String() string {
 // AddRow adds a row of values to the buffer.
 //
 // Each value is turned into a string using the same formatting as fmt.Sprint.
-func (b *Buffer) AddRow(vs ...interface{}) {
+func (b *Buffer) AddRow(vs ...any) {
 	row := make([]cell, len(vs))
 	for i, v := range vs {
 		c := cell{right: b.opts.AlignRight}
