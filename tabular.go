@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/mattn/go-runewidth"
@@ -113,28 +114,16 @@ func (b *Buffer) WriteTo(w io.Writer) (int64, error) {
 	for _, row := range b.rows {
 		for i, c := range row {
 			if i < len(widths) {
-				if c.wc > widths[i] {
-					widths[i] = c.wc
-				}
+				widths[i] = max(widths[i], c.wc)
 			} else {
 				widths = append(widths, c.wc)
 			}
 		}
 	}
-	for i, n := range widths {
-		if n < b.opts.MinWidth {
-			widths[i] = b.opts.MinWidth
-		}
+	for i, w := range widths {
+		widths[i] = max(w, b.opts.MinWidth)
 	}
-	var maxPad int
-	for _, n := range widths {
-		if n > maxPad {
-			maxPad = n
-		}
-	}
-	if b.opts.Padding > maxPad {
-		maxPad = b.opts.Padding
-	}
+	maxPad := max(slices.Max(widths), b.opts.Padding)
 	padBuf := strings.Repeat(string(b.opts.PadChar), maxPad)
 
 	var i int
