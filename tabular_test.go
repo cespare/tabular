@@ -1,11 +1,10 @@
 package tabular
 
 import (
-	"bytes"
 	"strings"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
+	"github.com/pkg/diff"
 )
 
 func TestPadding(t *testing.T) {
@@ -108,13 +107,39 @@ this..is........a..test
 `)
 }
 
+func TestMultibyteWidth(t *testing.T) {
+	b := New(Options{Padding: 2, PadChar: '.'})
+	b.AddRow("hello", "world", "!")
+	b.AddRow("☺", "你好", "x")
+	testOutput(t, b, `
+hello..world..!
+☺......你好...x
+`)
+}
+
+func TestCSI(t *testing.T) {
+	b := New(Options{Padding: 2, PadChar: '.'})
+	b.AddRow("\x1b[1mabc\x1b[0m", "def", "ghi")
+	b.AddRow("jkl", "\x1b[32mmno\x1b[0m", "pqr")
+	testOutput(t, b, "\x1b[1mabc\x1b[0m..def..ghi\njkl..\x1b[32mmno\x1b[0m..pqr")
+}
+
 func testOutput(t *testing.T, w *Buffer, want string) {
 	t.Helper()
 	want = strings.TrimPrefix(want, "\n")
-	var buf bytes.Buffer
+	var buf strings.Builder
 	w.WriteTo(&buf)
 	got := buf.String()
-	if diff := cmp.Diff(got, want); diff != "" {
-		t.Errorf("wrong output (-got, +want):\n%s", diff)
+	if got == want {
+		return
 	}
+	var diffBuf strings.Builder
+	if err := diff.Text("got", "want", got, want, &diffBuf); err != nil {
+		panic(err)
+	}
+	result := diffBuf.String()
+	if result == "--- got\n+++ want\n" {
+		return
+	}
+	t.Error(result)
 }

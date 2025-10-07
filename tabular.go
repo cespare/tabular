@@ -8,14 +8,18 @@
 //   - Does not count padding toward min-width
 //   - Does not insert any padding after the last cell of each row
 //   - Allows for per-cell right-alignment
-//   - Omits several lesser-used features
+//   - Omits several lesser-used features of tabwriter
+//   - Attempts to guess the width of multibyte code points
+//   - Ignores ANSI CSI sequences
 package tabular
 
 import (
 	"fmt"
 	"io"
+	"regexp"
 	"strings"
-	"unicode/utf8"
+
+	"github.com/mattn/go-runewidth"
 )
 
 // Options configure a [Buffer].
@@ -27,7 +31,10 @@ type Options struct {
 }
 
 // A Buffer stores rows of text and prints them as a table.
-// It assumes that each Unicode code point has a width of 1.
+//
+// To calculate the width of a table cell, it strips out any ANSI CSI sequences
+// from the text and then uses go-runewidth to guess the width of the resulting
+// text.
 type Buffer struct {
 	opts Options
 	buf  []byte
@@ -36,7 +43,7 @@ type Buffer struct {
 
 type cell struct {
 	wb    int  // width in bytes
-	wr    int  // width in runes
+	wc    int  // width in visible cells
 	right bool // whether to right-align
 }
 
@@ -84,11 +91,20 @@ func (b *Buffer) AddRow(vs ...any) {
 		}
 		s := fmt.Sprint(v)
 		c.wb = len(s)
-		c.wr = utf8.RuneCountInString(s)
+		c.wc = cellWidth(s)
 		row[i] = c
 		b.buf = append(b.buf, s...)
 	}
 	b.rows = append(b.rows, row)
+}
+
+var csiRegexp = regexp.MustCompile(`\x1b\[[\x30-\x3f]*[\x20-\x2f]*[\x40-\x7e]`)
+
+func cellWidth(s string) int {
+	// Strip out all ANSI CSI sequences. In this context, they are typically
+	// used for styling and coloring text.
+	s = csiRegexp.ReplaceAllString(s, "")
+	return runewidth.StringWidth(s)
 }
 
 // WriteTo writes the buffered rows as a text table.
@@ -97,11 +113,11 @@ func (b *Buffer) WriteTo(w io.Writer) (int64, error) {
 	for _, row := range b.rows {
 		for i, c := range row {
 			if i < len(widths) {
-				if c.wr > widths[i] {
-					widths[i] = c.wr
+				if c.wc > widths[i] {
+					widths[i] = c.wc
 				}
 			} else {
-				widths = append(widths, c.wr)
+				widths = append(widths, c.wc)
 			}
 		}
 	}
@@ -132,12 +148,12 @@ func (b *Buffer) WriteTo(w io.Writer) (int64, error) {
 			}
 			width := widths[j]
 			if c.right {
-				line = append(line, padBuf[:width-c.wr]...)
+				line = append(line, padBuf[:width-c.wc]...)
 			}
 			line = append(line, b.buf[i:i+c.wb]...)
 			i += c.wb
 			if !c.right && j < len(row)-1 {
-				line = append(line, padBuf[:width-c.wr]...)
+				line = append(line, padBuf[:width-c.wc]...)
 			}
 		}
 		line = append(line, '\n')
