@@ -110,10 +110,10 @@ this..is........a..test
 func TestMultibyteWidth(t *testing.T) {
 	b := New(Options{Padding: 2, PadChar: '.'})
 	b.AddRow("hello", "world", "!")
-	b.AddRow("☺", "你好", "x")
+	b.AddRow(Right("☺"), "你好", "x")
 	testOutput(t, b, `
 hello..world..!
-☺......你好...x
+....☺..你好...x
 `)
 }
 

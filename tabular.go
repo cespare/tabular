@@ -10,7 +10,7 @@
 //   - Allows for per-cell right-alignment
 //   - Omits several lesser-used features of tabwriter
 //   - Attempts to guess the width of multibyte code points
-//   - Ignores ANSI CSI sequences
+//   - Ignores ANSI CSI sequences for width calculations
 package tabular
 
 import (
@@ -28,7 +28,7 @@ type Options struct {
 	MinWidth   int  // Minimum cell width (not including padding).
 	Padding    int  // Padding between each cell.
 	PadChar    byte // The character to use for padding.
-	AlignRight bool // Align cells to the right by default.
+	AlignRight bool // Whether to right-align cells by default.
 }
 
 // A Buffer stores rows of text and prints them as a table.
