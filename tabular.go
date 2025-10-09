@@ -106,6 +106,13 @@ func (b *Buffer) AddRow(vs ...any) {
 	b.rows = append(b.rows, row)
 }
 
+// Reset clears the buffer so that it may be used to write a new table
+// (with the same options).
+func (b *Buffer) Reset() {
+	b.buf = b.buf[:0]
+	b.rows = b.rows[:0]
+}
+
 var csiRegexp = regexp.MustCompile(`\x1b\[[\x30-\x3f]*[\x20-\x2f]*[\x40-\x7e]`)
 
 func cellWidth(s string) int {
