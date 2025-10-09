@@ -14,6 +14,7 @@
 package tabular
 
 import (
+	"cmp"
 	"fmt"
 	"io"
 	"regexp"
@@ -25,10 +26,15 @@ import (
 
 // Options configure a [Buffer].
 type Options struct {
-	MinWidth   int  // Minimum cell width (not including padding).
-	Padding    int  // Padding between each cell.
-	PadChar    byte // The character to use for padding.
-	AlignRight bool // Whether to right-align cells by default.
+	// MinWidth is the minimum cell width (not including padding).
+	MinWidth int
+	// Padding is the number of padding characters between each cell.
+	Padding int
+	// PadChar is the character to use for padding.
+	// The default, if PadChar is zero, is to use space.
+	PadChar byte
+	// AlignRight controls whether all cells are right-aligned by default.
+	AlignRight bool
 }
 
 // A Buffer stores rows of text and prints them as a table.
@@ -50,6 +56,7 @@ type cell struct {
 
 // New constructs a [Buffer] with options.
 func New(opts Options) *Buffer {
+	opts.PadChar = cmp.Or(opts.PadChar, ' ')
 	return &Buffer{opts: opts}
 }
 

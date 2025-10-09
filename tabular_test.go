@@ -124,6 +124,23 @@ func TestCSI(t *testing.T) {
 	testOutput(t, b, "\x1b[1mabc\x1b[0m..def..ghi\njkl..\x1b[32mmno\x1b[0m..pqr")
 }
 
+func TestDefaultOptions(t *testing.T) {
+	b := New(Options{Padding: 2})
+	b.AddRow("a", "bbbbbb", "c")
+	b.AddRow("dddd", "e", "fff")
+	testOutput(t, b, `
+a     bbbbbb  c
+dddd  e       fff
+`)
+	b = New(Options{})
+	b.AddRow("a", "bb")
+	b.AddRow("ccc", "d")
+	testOutput(t, b, `
+a  bb
+cccd
+`)
+}
+
 func testOutput(t *testing.T, w *Buffer, want string) {
 	t.Helper()
 	want = strings.TrimPrefix(want, "\n")
