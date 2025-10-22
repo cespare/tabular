@@ -122,8 +122,14 @@ func cellWidth(s string) int {
 	return runewidth.StringWidth(s)
 }
 
-// WriteTo writes the buffered rows as a text table.
+// WriteTo writes the buffered rows as a text table and clears the buffer.
 func (b *Buffer) WriteTo(w io.Writer) (int64, error) {
+	// Whatever happens, clear the buffer before returning.
+	// TODO: Add a different API to write out a snapshot without clearing?
+	defer func() {
+		b.buf = b.buf[:0]
+		b.rows = b.rows[:0]
+	}()
 	var widths []int
 	for _, row := range b.rows {
 		for i, c := range row {

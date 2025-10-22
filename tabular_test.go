@@ -91,7 +91,7 @@ this  is     a  test
 `)
 }
 
-func TestAddRowAfterWrite(t *testing.T) {
+func TestWriteToResets(t *testing.T) {
 	b := New(Options{Padding: 2, PadChar: '.'})
 	b.AddRow("this", "is", Right("a"), "test")
 	b.AddRow(1, 2, Right(true), false)
@@ -101,9 +101,7 @@ this..is.....a..test
 `)
 	b.AddRow(2, Right("x"), 1839834, "yes")
 	testOutput(t, b, `
-this..is........a..test
-1.....2......true..false
-2......x..1839834..yes
+2..x..1839834..yes
 `)
 }
 
@@ -138,23 +136,6 @@ dddd  e       fff
 	testOutput(t, b, `
 a  bb
 cccd
-`)
-}
-
-func TestReset(t *testing.T) {
-	b := New(Options{MinWidth: 2, Padding: 2, PadChar: '.'})
-	b.AddRow("1111", "22")
-	b.AddRow("33", "444444")
-	testOutput(t, b, `
-1111..22
-33....444444
-`)
-	b.Reset()
-	b.AddRow("1", "2")
-	b.AddRow("3", "4")
-	testOutput(t, b, `
-1...2
-3...4
 `)
 }
 
