@@ -105,6 +105,11 @@ this..is.....a..test
 `)
 }
 
+func TestWriteToEmpty(t *testing.T) {
+	b := New(Options{Padding: 2, PadChar: '.'})
+	testOutput(t, b, "")
+}
+
 func TestMultibyteWidth(t *testing.T) {
 	b := New(Options{Padding: 2, PadChar: '.'})
 	b.AddRow("hello", "world", "!")

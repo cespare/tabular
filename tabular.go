@@ -117,6 +117,9 @@ func cellWidth(s string) int {
 
 // WriteTo writes the buffered rows as a text table and clears the buffer.
 func (b *Buffer) WriteTo(w io.Writer) (int64, error) {
+	if len(b.rows) == 0 {
+		return 0, nil
+	}
 	// Whatever happens, clear the buffer before returning.
 	// TODO: Add a different API to write out a snapshot without clearing?
 	defer func() {
